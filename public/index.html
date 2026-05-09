@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Cars App</title>
+	<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+	<h1>Cars App</h1>
+
+	<h2>Add a Car</h2>
+
+	<form id="carForm">
+		<input type="text" id="brand" name="brand" placeholder="Brand" required>
+		<input type="text" id="make" name="make" placeholder="Make" required>
+		<input type="number" id="year" name="year" placeholder="Year" required>
+		<input type="text" id="color" name="color" placeholder="Color" required>
+		<button type="submit">Add Car</button>
+	</form>
+
+	<h2>Cars</h2>
+	<table>
+		<thead>
+			<tr>
+				<th>ID</th>
+				<th>Brand</th>
+				<th>Make</th>
+				<th>Year</th>
+				<th>Color</th>
+				<th>Actions</th>
+			</tr>
+		</thead>
+		<tbody id="carsTableBody"></tbody>
+	</table>
+
+	<div>
+		<h3>Edit Car </h3>
+		<form id="editForm">
+			<input type="text" id="brand" name="brand" placeholder="Brand" required>
+			<input type="text" id="make" name="make" placeholder="Make" required>
+			<input type="number" id="year" name="year" placeholder="Year" required>
+			<input type="text" id="color" name="color" placeholder="Color" required>
+			<button type="submit">Edit Car</button>
+		</form>
+	</div>
+
+	<script>
+		const form = document.getElementById("carForm");
+		const tableBody = document.getElementById("carsTableBody");
+
+		async function loadCars() {
+			const response = await fetch("/api/cars");
+			const cars = await response.json();
+
+			tableBody.innerHTML = "";
+
+			cars.forEach(car => {
+				const row = document.createElement("tr");
+
+				row.innerHTML = `
+					<td>${car.id}</td>
+					<td>${car.brand}</td>
+					<td>${car.make}</td>
+					<td>${car.year}</td>
+					<td>${car.color}</td>
+					<td>
+						<button onclick="deleteCar(${car.id})">Delete</button>
+						<button onclick="editCar(${car.id})">Edit</button>
+					</td>
+				`;
+
+				tableBody.appendChild(row);
+			});
+		}
+		form.addEventListener("submit", async event => {
+			event.preventDefault();
+
+			const newCar = {
+				brand: document.getElementById("brand").value,
+				make: document.getElementById("make").value,
+				year: document.getElementById("year").value,
+				color: document.getElementById("color").value
+			};
+
+			await fetch("/api/cars", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json"
+				},
+				body: JSON.stringify(newCar)
+			});
+
+			form.reset();
+			loadCars();
+		});
+		async function deleteCar(id) {
+			await fetch(`/api/cars/${id}`, {
+				method: "DELETE"
+			});
+
+			loadCars();
+		}
+		async function editCar(id) {
+			await fetch(`/api/cars/${id}`, {
+				method: "PUT"
+				// TODO
+			});
+
+			loadCars();
+		}
+		loadCars();
+	</script>
+</body>
+
+</html>
